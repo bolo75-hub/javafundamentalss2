@@ -4,20 +4,36 @@ import addressbook.AddressBook;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class ReflectionTest {
     public static void main(String[] args) throws ClassNotFoundException {
         //to load
         Class<AddressBook> cls1 = AddressBook.class;
-        Class<AddressBook> cls2 =
-                (Class<AddressBook>) new AddressBook().getClass();
-        Class<?> cls3 =
-                Class.forName("addressbook.AddressBook");
+        Class<AddressBook> cls2 = (Class<AddressBook>) new AddressBook().getClass();
+        Class<?> cls3 = Class.forName("addressbook.AddressBook");
+        inspectClass(cls1);
 
-                inspectClass(cls1);
         AddressBook addressBook = new AddressBook();
         manipulateObject(addressBook);
+
+        invokeMethodOfAnObject(addressBook);
+    }
+    private static void invokeMethodOfAnObject( Object obj ) {
+        Class<?> cls = obj.getClass();
+
+        try {
+            cls.getDeclaredMethod(null);
+            Method method = cls.getDeclaredMethod("set name", String.class);
+            method.invoke(obj, null);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void manipulateObject(AddressBook addressBook) {
@@ -26,6 +42,8 @@ public class ReflectionTest {
     Field [] fields = clsClass.getDeclaredFields();
 
         try {
+            //potencially we may get an no such field exception if
+            //we pass a filed name that does not exist
             Field field = clsClass.getDeclaredField("contacts");
             System.out.println(addressBook.getContacts());
             //change the access modifier from private to public
